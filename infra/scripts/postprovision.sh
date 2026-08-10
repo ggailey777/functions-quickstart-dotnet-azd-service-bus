@@ -30,8 +30,16 @@ cat > ./src/local.settings.json << EOF
 EOF
 
 echo "src/local.settings.json has been created/updated successfully!"
+
+echo "Creating/updating send-message.sh..."
+
+echo "az rest --method POST --uri \"https://$ServiceBusNamespace/$ServiceBusQueueName/messages\" --headers \"Content-Type=application/atom+xml;type=entry;charset=utf-8\" --body \"Hello from the CLI\" --resource \"https://servicebus.azure.net\"" > ./send-message.sh
+chmod +x ./send-message.sh
+
+echo "send-message.sh has been created successfully!"
 echo ""
 echo "Service Bus Namespace: $ServiceBusNamespace"
 echo "Service Bus Queue: $ServiceBusQueueName"
 echo ""
 echo "You can now run the function locally with 'cd src && func start'"
+echo "Send test messages with './send-message.sh'"
