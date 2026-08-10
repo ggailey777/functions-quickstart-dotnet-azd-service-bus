@@ -1,0 +1,27 @@
+$ErrorActionPreference = "Stop"
+
+Write-Host "Running post-provision script..." -ForegroundColor Yellow
+
+# Get the outputs from the deployment
+$outputs = azd env get-values --output json | ConvertFrom-Json
+$ServiceBusNamespace = $outputs.SERVICE_BUS_CONNECTION__fullyQualifiedNamespace
+$ServiceBusQueueName = $outputs.SERVICE_BUS_QUEUE_NAME
+
+Write-Host "Creating/updating src/local.settings.json..." -ForegroundColor Yellow
+
+@{
+    "IsEncrypted" = $false
+    "Values" = @{
+        "AzureWebJobsStorage" = "UseDevelopmentStorage=true"
+        "FUNCTIONS_WORKER_RUNTIME" = "dotnet-isolated"
+        "ServiceBusConnection__fullyQualifiedNamespace" = "$ServiceBusNamespace"
+        "ServiceBusQueueName" = "$ServiceBusQueueName"
+    }
+} | ConvertTo-Json | Out-File -FilePath ".\src\local.settings.json" -Encoding ascii -Force
+
+Write-Host "src/local.settings.json has been created/updated successfully!" -ForegroundColor Green
+Write-Host ""
+Write-Host "Service Bus Namespace: $ServiceBusNamespace" -ForegroundColor Cyan
+Write-Host "Service Bus Queue: $ServiceBusQueueName" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "You can now run the function locally with 'cd src && func start'" -ForegroundColor Green

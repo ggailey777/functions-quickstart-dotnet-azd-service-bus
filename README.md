@@ -60,9 +60,31 @@ You can initialize a project from this `azd` template in one of these ways:
 
     You can also clone the repository from your own fork in GitHub.
 
-## Prepare your local environment
+## Provision Azure resources
 
-1. Navigate to the `src` app folder and create a file in that folder named `local.settings.json` that contains this JSON data:
+1. Run the following command to provision all required Azure resources:
+
+    ```shell
+    azd provision
+    ```
+
+    You're prompted to supply these required deployment parameters:
+
+    | Parameter | Description |
+    | ---- | ---- |
+    | _Environment name_ | An environment that's used to maintain a unique deployment context for your app. You won't be prompted if you created the local project using `azd init`. |
+    | _Azure subscription_ | Subscription in which your resources are created. |
+    | _Azure location_ | Azure region in which to create the resource group that contains the new Azure resources. Only regions that currently support the Flex Consumption plan are shown. |
+    | _VNET_ENABLED_ | Whether to deploy with VNet integration and private endpoints. Defaults to `false`. |
+
+    This creates all necessary Azure resources including:
+    - Azure Service Bus namespace and queue
+    - Azure Function App (Flex Consumption)
+    - Application Insights for monitoring
+    - Storage Account for function app
+    - Virtual Network with private endpoints (if `VNET_ENABLED=true`)
+
+    After provisioning completes, a post-provision script automatically generates `src/local.settings.json` with the correct Service Bus connection settings:
 
     ```json
     {
@@ -70,14 +92,11 @@ You can initialize a project from this `azd` template in one of these ways:
         "Values": {
             "AzureWebJobsStorage": "UseDevelopmentStorage=true",
             "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-            "ServiceBusConnection": "",
-            "ServiceBusQueueName": "testqueue"
+            "ServiceBusConnection__fullyQualifiedNamespace": "<your-namespace>.servicebus.windows.net",
+            "ServiceBusQueueName": "<your-queue-name>"
         }
     }
     ```
-
-    > [!NOTE]
-    > The `ServiceBusConnection` will be empty for local development. You'll need an actual Service Bus connection for full testing, which will be provided after deployment to Azure.
 
 2. Navigate to the `src` folder and restore the .NET packages:
 
@@ -86,35 +105,34 @@ You can initialize a project from this `azd` template in one of these ways:
     dotnet restore
     ```
 
-## Run your app from the terminal
+## Run your app locally
 
-1. From the `src` folder, run this command to start the Functions host locally:
+1. Start the Azurite storage emulator. You can do this using the [Azurite extension](https://marketplace.visualstudio.com/items?itemName=Azurite.azurite) in VS Code or by running `azurite` in a separate terminal.
+
+2. From the `src` folder, run this command to start the Functions host locally:
 
     ```shell
     func start
     ```
 
-    > [!NOTE]
-    > Since this function uses a Service Bus trigger, it will start but won't process messages until connected to an actual Service Bus queue. The function will be ready and waiting for messages.
-
-2. The function will start and display the available functions. You should see output similar to:
+3. The function will start and display the available functions. You should see output similar to:
 
     ```
     Functions:
         ServiceBusQueueTrigger: serviceBusQueueTrigger
     ```
 
-3. To fully test the Service Bus functionality, you'll need to deploy to Azure first (see [Deploy to Azure](#deploy-to-azure) section) and then send messages through the Azure portal.
+    The function is now running locally and connected to the remote Service Bus resource you provisioned. You can send test messages using the Service Bus Explorer in the Azure Portal.
 
 4. When you're done, press Ctrl+C in the terminal window to stop the `func` host process.
 
 ## Run your app using Visual Studio Code
 
 1. Open the project root folder in Visual Studio Code.
-2. Open the `src` folder in the terminal within VS Code.
-3. Press **Run/Debug (F5)** to run in the debugger. 
+2. Start the Azurite storage emulator.
+3. Press **Run/Debug (F5)** to run in the debugger.
 4. The Azure Functions extension will automatically detect your function and start the local runtime.
-5. The function will start and be ready to receive Service Bus messages (though local testing requires an actual Service Bus connection).
+5. The function connects to the remote Service Bus resource provisioned in Azure.
 
 ## Source Code
 
@@ -178,21 +196,13 @@ This configuration ensures that each function instance processes only one messag
 
 ## Deploy to Azure
 
-Run this command to provision the function app, with any required Azure resources, and deploy your code:
+Run this command to deploy your function app code to Azure:
 
 ```shell
-azd up
+azd deploy
 ```
 
-You're prompted to supply these required deployment parameters:
-
-| Parameter | Description |
-| ---- | ---- |
-| _Environment name_ | An environment that's used to maintain a unique deployment context for your app. You won't be prompted if you created the local project using `azd init`. |
-| _Azure subscription_ | Subscription in which your resources are created. |
-| _Azure location_ | Azure region in which to create the resource group that contains the new Azure resources. Only regions that currently support the Flex Consumption plan are shown. |
-
-After deployment completes successfully, `azd` provides you with the URL endpoints and resource information for your new function app.
+This builds the .NET project and deploys it to the function app provisioned earlier.
 
 ## Test the solution
 
@@ -215,7 +225,7 @@ The sample telemetry should show that your messages are triggering the function 
 
 ## Redeploy your code
 
-You can run the `azd up` command as many times as you need to both provision your Azure resources and deploy code updates to your function app.
+You can run `azd deploy` as many times as you need to deploy code updates to your function app. If you need to update infrastructure, run `azd provision` again.
 
 > [!NOTE]
 > Deployed code files are always overwritten by the latest deployment package.
