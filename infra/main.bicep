@@ -26,7 +26,7 @@ param serviceBusQueueName string = ''
 param serviceBusNamespaceName string = ''
 param vNetName string = ''
 
-param vnetEnabled bool = false
+param vnetEnabled bool
 
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
@@ -68,7 +68,7 @@ module processor './app/processor.bicep' = {
     applicationInsightsName: monitoring.outputs.name
     appServicePlanId: appServicePlan.outputs.resourceId
     runtimeName: 'dotnet-isolated'
-    runtimeVersion: '8.0'
+    runtimeVersion: '10.0'
     storageAccountName: storage.outputs.name
     identityId: processorUserAssignedIdentity.outputs.resourceId
     identityClientId: processorUserAssignedIdentity.outputs.clientId
