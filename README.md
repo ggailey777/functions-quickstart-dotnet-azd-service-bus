@@ -29,7 +29,7 @@ This sample processes queue-based events, demonstrating a common Azure Functions
 
 ## Prerequisites
 
-+ [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
++ [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 + [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local?tabs=v4%2Clinux%2Ccsharp%2Cportal%2Cbash#install-the-azure-functions-core-tools)
 + To use Visual Studio Code to run and debug locally:
   + [Visual Studio Code](https://code.visualstudio.com/)
@@ -112,7 +112,7 @@ You can initialize a project from this `azd` template in one of these ways:
 2. From the `src` folder, run this command to start the Functions host locally:
 
     ```shell
-    func start
+    dotnet run
     ```
 
 3. The function will start and display the available functions. You should see output similar to:
@@ -206,7 +206,7 @@ This builds the .NET project and deploys it to the function app provisioned earl
 
 ## Test the solution
 
-1. With the function running (either locally via `func start` or deployed to Azure), send a test message to the Service Bus queue by running the generated script:
+1. With the function running (either locally via `dotnet run` or deployed to Azure), send a test message to the Service Bus queue by running the generated script:
 
     ```shell
     ./send-message.sh
