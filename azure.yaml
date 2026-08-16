@@ -20,6 +20,6 @@ hooks:
       continueOnError: false
     posix:
       shell: sh
-      run: bash ./infra/scripts/postprovision.sh
+      run: ./infra/scripts/postprovision.sh
       interactive: true
       continueOnError: false
